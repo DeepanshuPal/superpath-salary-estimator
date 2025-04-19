@@ -629,6 +629,7 @@ export function SalaryResults({ results, userData, isCalculating, formSubmitted 
         isOpen={shareDialogOpen}
         onClose={() => setShareDialogOpen(false)}
         salaryEstimate={results?.estimate || 0}
+        userData={userData}
       />
     </div>
   )

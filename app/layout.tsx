@@ -15,8 +15,12 @@ const instrumentSerif = Instrument_Serif({
 })
 
 export const metadata = {
-  title: "Content Marketing Salary Estimator | Superpath",
+  title: "Superpath Salary Compass",
   description: "Get a personalized salary estimate based on your experience, skills, and location.",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
     generator: 'v0.dev'
 }
 

@@ -6,22 +6,42 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Copy, X, Facebook, Linkedin, MessageCircle } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
+import type { UserData } from "@/lib/types"
 
 interface ShareDialogProps {
   isOpen: boolean
   onClose: () => void
   salaryEstimate: number
+  userData: UserData
 }
 
-// Update the ShareDialog component to fix these issues
-export function ShareDialog({ isOpen, onClose, salaryEstimate }: ShareDialogProps) {
+export function ShareDialog({ isOpen, onClose, salaryEstimate, userData }: ShareDialogProps) {
   const { toast } = useToast()
   const [copied, setCopied] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Generate a unique URL for sharing with salarycompass.xyz domain
   const uniqueId = Math.random().toString(36).substring(2, 15)
-  const shareUrl = `https://salarycompass.xyz/share/${uniqueId}`
+
+  // Create a shareable URL that includes the necessary data as query parameters
+  const shareUrl = new URL(`https://salarycompass.xyz/share/${uniqueId}`)
+
+  // Add user data as query parameters
+  shareUrl.searchParams.set("exp", userData.experienceLevel)
+  shareUrl.searchParams.set("years", userData.experienceYears.toString())
+  shareUrl.searchParams.set("title", userData.jobTitle)
+  shareUrl.searchParams.set("industry", userData.industry)
+  shareUrl.searchParams.set("location", userData.location)
+  shareUrl.searchParams.set("type", userData.employmentType)
+  shareUrl.searchParams.set("skills", userData.skills.join(","))
+
+  if (userData.gender) {
+    shareUrl.searchParams.set("gender", userData.gender)
+  }
+
+  if (userData.ethnicity) {
+    shareUrl.searchParams.set("ethnicity", userData.ethnicity)
+  }
 
   const handleCopy = () => {
     if (inputRef.current) {
@@ -38,20 +58,20 @@ export function ShareDialog({ isOpen, onClose, salaryEstimate }: ShareDialogProp
 
   const handleSocialShare = (platform: string) => {
     let shareLink = ""
-    const text = `Check out my content marketing salary estimate of ${salaryEstimate.toLocaleString()} per year!`
+    const text = `Check out my content marketing salary estimate of $${salaryEstimate.toLocaleString()} per year!`
 
     switch (platform) {
       case "facebook":
-        shareLink = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(text)}`
+        shareLink = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl.toString())}&quote=${encodeURIComponent(text)}`
         break
       case "twitter":
-        shareLink = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`
+        shareLink = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl.toString())}&text=${encodeURIComponent(text)}`
         break
       case "linkedin":
-        shareLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(text)}`
+        shareLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl.toString())}&title=${encodeURIComponent(text)}`
         break
       case "whatsapp":
-        shareLink = `https://wa.me/?text=${encodeURIComponent(text + " " + shareUrl)}`
+        shareLink = `https://wa.me/?text=${encodeURIComponent(text + " " + shareUrl.toString())}`
         break
     }
 
@@ -75,7 +95,7 @@ export function ShareDialog({ isOpen, onClose, salaryEstimate }: ShareDialogProp
 
         <div className="flex items-center space-x-2 mt-4">
           <div className="grid flex-1 gap-2">
-            <Input ref={inputRef} readOnly value={shareUrl} className="h-10" />
+            <Input ref={inputRef} readOnly value={shareUrl.toString()} className="h-10" />
           </div>
           <Button size="icon" className="h-10 w-10 bg-[#F28C38] hover:bg-[#e07c28]" onClick={handleCopy}>
             <Copy className="h-4 w-4" />
