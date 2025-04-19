@@ -40,10 +40,13 @@ const industryMultipliers = {
   b2b: { value: 1.02, description: "B2B content marketing typically pays above average" },
   b2c: { value: 0.97, description: "B2C/DTC content marketing pays slightly below average" },
   "non-profit": { value: 0.84, description: "Non-profit/healthcare/higher ed typically pays less" },
+  agency: { value: 0.92, description: "Agency roles typically pay slightly below average" },
 }
 
 const employmentTypeMultipliers = {
   "full-time": { value: 1.01, description: "Full-time roles offer slightly higher compensation" },
+  "part-time": { value: 0.85, description: "Part-time roles typically pay less on an annual basis" },
+  contract: { value: 0.95, description: "Contract roles have variable compensation" },
   freelance: { value: 0.97, description: "Freelance roles have more variable compensation" },
 }
 
@@ -80,141 +83,193 @@ const genderMultipliers = {
   "prefer-not-to-say": { value: 1.0, description: "" },
 }
 
+const ethnicityMultipliers = {
+  white: { value: 1.05, description: "White individuals typically earn more in content marketing" },
+  asian: { value: 1.02, description: "Asian individuals typically earn slightly above average" },
+  black: { value: 0.92, description: "Black individuals typically earn less than white counterparts" },
+  hispanic: { value: 0.94, description: "Hispanic individuals typically earn less than white counterparts" },
+  "two-or-more": { value: 0.97, description: "Individuals of two or more races typically earn slightly less" },
+  "prefer-not-to-say": { value: 1.0, description: "" },
+}
+
 export function calculateSalaryEstimate(userData: UserData): SalaryEstimateResult {
-  // 1. Get base salary by experience
-  const expLevel = userData.experienceLevel || "4-7" // Default to mid-level if not specified
-  const expData = experienceLevelData[expLevel as keyof typeof experienceLevelData]
-  const baseSalary = expData.baseSalary
+  try {
+    // 1. Get base salary by experience
+    const expLevel = userData.experienceLevel || "4-7" // Default to mid-level if not specified
+    const expData = experienceLevelData[expLevel as keyof typeof experienceLevelData]
+    const baseSalary = expData.baseSalary
 
-  // 2. Calculate adjustments for each factor
-  const adjustments: Record<string, any> = {}
+    // 2. Calculate adjustments for each factor
+    const adjustments: Record<string, any> = {}
 
-  // Job Title adjustment
-  const jobTitle = userData.jobTitle || "specialist"
-  const jobTitleMultiplier = jobTitleMultipliers[jobTitle as keyof typeof jobTitleMultipliers]
-  adjustments.jobTitle = {
-    impact: jobTitleMultiplier.value - 1,
-    description: jobTitleMultiplier.description,
-  }
-
-  // Industry adjustment
-  const industry = userData.industry || "b2b"
-  const industryMultiplier = industryMultipliers[industry as keyof typeof industryMultipliers]
-  adjustments.industry = {
-    impact: industryMultiplier.value - 1,
-    description: industryMultiplier.description,
-  }
-
-  // Employment Type adjustment
-  const employmentType = userData.employmentType || "full-time"
-  const employmentMultiplier = employmentTypeMultipliers[employmentType as keyof typeof employmentTypeMultipliers]
-  adjustments.employmentType = {
-    impact: employmentMultiplier.value - 1,
-    description: employmentMultiplier.description,
-  }
-
-  // Location adjustment
-  const location = userData.location || "us"
-  const locationMultiplier = locationMultipliers[location as keyof typeof locationMultipliers]
-  adjustments.location = {
-    impact: locationMultiplier.value - 1,
-    description: locationMultiplier.description,
-  }
-
-  // Skills adjustment
-  let skillsMultiplier = 1.0
-  if (userData.skills.length > 0) {
-    let skillsImpactTotal = 0
-    userData.skills.forEach((skill) => {
-      skillsImpactTotal += skillsImpact[skill as keyof typeof skillsImpact] || 0
-    })
-    // Normalize based on number of skills
-    const normalizedSkillsImpact = skillsImpactTotal / Math.max(1, userData.skills.length)
-    skillsMultiplier = 1 + normalizedSkillsImpact
-  }
-
-  adjustments.skills = {
-    impact: skillsMultiplier - 1,
-    description: userData.skills.length > 0 ? "Your skill set impacts your market value" : "No skills selected",
-  }
-
-  // Gender adjustment (optional)
-  if (userData.gender && userData.gender !== "prefer-not-to-say") {
-    const genderMultiplier = genderMultipliers[userData.gender as keyof typeof genderMultipliers]
-    adjustments.gender = {
-      impact: genderMultiplier.value - 1,
-      description: genderMultiplier.description,
+    // Job Title adjustment
+    const jobTitle = userData.jobTitle || "specialist"
+    const jobTitleMultiplier = jobTitleMultipliers[jobTitle as keyof typeof jobTitleMultipliers]
+    adjustments.jobTitle = {
+      impact: jobTitleMultiplier.value - 1,
+      description: jobTitleMultiplier.description,
     }
-  }
 
-  // 3. Calculate final salary estimate
-  let adjustmentFactor = 1.0
-  Object.values(adjustments).forEach((adjustment: any) => {
-    adjustmentFactor *= 1 + adjustment.impact
-  })
+    // Industry adjustment
+    const industry = userData.industry || "b2b"
+    const industryMultiplier = industryMultipliers[industry as keyof typeof industryMultipliers]
+    adjustments.industry = {
+      impact: industryMultiplier.value - 1,
+      description: industryMultiplier.description,
+    }
 
-  const estimatedSalary = Math.round(baseSalary * adjustmentFactor)
+    // Employment Type adjustment
+    const employmentType = userData.employmentType || "full-time"
+    const employmentMultiplier = employmentTypeMultipliers[employmentType as keyof typeof employmentTypeMultipliers]
+    adjustments.employmentType = {
+      impact: employmentMultiplier.value - 1,
+      description: employmentMultiplier.description,
+    }
 
-  // 4. Calculate salary range
-  const rangeMin = Math.round(estimatedSalary * 0.85)
-  const rangeMax = Math.round(estimatedSalary * 1.15)
+    // Location adjustment
+    const location = userData.location || "us"
+    const locationMultiplier = locationMultipliers[location as keyof typeof locationMultipliers]
+    adjustments.location = {
+      impact: locationMultiplier.value - 1,
+      description: locationMultiplier.description,
+    }
 
-  // 5. Generate insights
-  const insights = generateInsights(userData, adjustments, estimatedSalary)
+    // Skills adjustment
+    let skillsMultiplier = 1.0
+    if (userData.skills.length > 0) {
+      let skillsImpactTotal = 0
+      userData.skills.forEach((skill) => {
+        skillsImpactTotal += skillsImpact[skill as keyof typeof skillsImpact] || 0
+      })
+      // Normalize based on number of skills
+      const normalizedSkillsImpact = skillsImpactTotal / Math.max(1, userData.skills.length)
+      skillsMultiplier = 1 + normalizedSkillsImpact
+    }
 
-  return {
-    estimate: estimatedSalary,
-    range: {
-      min: rangeMin,
-      max: rangeMax,
-    },
-    adjustments,
-    insights,
-    trend: expData.trend,
+    adjustments.skills = {
+      impact: skillsMultiplier - 1,
+      description: userData.skills.length > 0 ? "Your skill set impacts your market value" : "No skills selected",
+    }
+
+    // Gender adjustment (optional)
+    if (userData.gender && userData.gender !== "prefer-not-to-say") {
+      const genderMultiplier = genderMultipliers[userData.gender as keyof typeof genderMultipliers]
+      adjustments.gender = {
+        impact: genderMultiplier.value - 1,
+        description: genderMultiplier.description,
+      }
+    }
+
+    // Ethnicity adjustment (optional)
+    if (userData.ethnicity && userData.ethnicity !== "prefer-not-to-say") {
+      const ethnicityMultiplier = ethnicityMultipliers[userData.ethnicity as keyof typeof ethnicityMultipliers]
+      adjustments.ethnicity = {
+        impact: ethnicityMultiplier.value - 1,
+        description: ethnicityMultiplier.description,
+      }
+    }
+
+    // 3. Calculate final salary estimate
+    let adjustmentFactor = 1.0
+    Object.values(adjustments).forEach((adjustment: any) => {
+      adjustmentFactor *= 1 + adjustment.impact
+    })
+
+    const estimatedSalary = Math.round(baseSalary * adjustmentFactor)
+
+    // 4. Calculate salary range
+    const rangeMin = Math.round(estimatedSalary * 0.85)
+    const rangeMax = Math.round(estimatedSalary * 1.15)
+
+    // 5. Generate insights
+    const insights = generateInsights(userData, adjustments, estimatedSalary)
+
+    return {
+      estimate: estimatedSalary,
+      range: {
+        min: rangeMin,
+        max: rangeMax,
+      },
+      adjustments,
+      insights,
+      trend: expData.trend,
+    }
+  } catch (error) {
+    console.error("Error in salary calculation:", error)
+    // Return a default result in case of error
+    return {
+      estimate: 100000,
+      range: {
+        min: 85000,
+        max: 115000,
+      },
+      adjustments: {},
+      insights: ["Unable to calculate personalized insights due to an error."],
+      trend: 0,
+    }
   }
 }
 
 function generateInsights(userData: UserData, adjustments: Record<string, any>, salary: number): string[] {
   const insights: string[] = []
 
-  // Experience-based insights
-  if (userData.experienceLevel === "0-3") {
-    insights.push(
-      "Early career content marketers can increase their salary by focusing on developing specialized skills like content strategy.",
-    )
-  } else if (userData.experienceLevel === "4-7") {
-    insights.push(
-      "Mid-career professionals often see salary increases by taking on management responsibilities or specializing in high-demand areas.",
-    )
-  } else if (userData.experienceLevel === "8-12" || userData.experienceLevel === "13+") {
-    insights.push(
-      "Experienced content marketers command higher salaries when they combine strategic vision with people management skills.",
-    )
-  }
+  try {
+    // Experience-based insights
+    if (userData.experienceLevel === "0-3") {
+      insights.push(
+        "Early career content marketers can increase their salary by focusing on developing specialized skills like content strategy.",
+      )
+    } else if (userData.experienceLevel === "4-7") {
+      insights.push(
+        "Mid-career professionals often see salary increases by taking on management responsibilities or specializing in high-demand areas.",
+      )
+    } else if (userData.experienceLevel === "8-12" || userData.experienceLevel === "13+") {
+      insights.push(
+        "Experienced content marketers command higher salaries when they combine strategic vision with people management skills.",
+      )
+    }
 
-  // Job title insights
-  if (userData.jobTitle === "writer" || userData.jobTitle === "specialist") {
-    insights.push(
-      "Consider developing strategic skills to move into higher-paying content strategy or management roles.",
-    )
-  } else if (userData.jobTitle === "director" || userData.jobTitle === "vp") {
-    insights.push("Your leadership position commands one of the highest salaries in content marketing.")
-  }
+    // Job title insights
+    if (userData.jobTitle === "writer" || userData.jobTitle === "specialist") {
+      insights.push(
+        "Consider developing strategic skills to move into higher-paying content strategy or management roles.",
+      )
+    } else if (userData.jobTitle === "director" || userData.jobTitle === "vp") {
+      insights.push("Your leadership position commands one of the highest salaries in content marketing.")
+    }
 
-  // Skills insights
-  if (userData.skills.includes("management")) {
-    insights.push("Your people management skills significantly increase your market value in content marketing.")
-  }
-  if (!userData.skills.includes("strategy") && !userData.skills.includes("management")) {
-    insights.push(
-      "Adding content strategy or people management to your skill set could increase your earning potential.",
-    )
-  }
+    // Skills insights
+    if (userData.skills.includes("management")) {
+      insights.push("Your people management skills significantly increase your market value in content marketing.")
+    }
+    if (!userData.skills.includes("strategy") && !userData.skills.includes("management")) {
+      insights.push(
+        "Adding content strategy or people management to your skill set could increase your earning potential.",
+      )
+    }
 
-  // Location insights
-  if (userData.location && userData.location !== "us") {
-    insights.push("Content marketing roles in the US typically pay higher than other regions for similar positions.")
-  }
+    // Location insights
+    if (userData.location && userData.location !== "us") {
+      insights.push("Content marketing roles in the US typically pay higher than other regions for similar positions.")
+    }
 
-  return insights
+    // Ensure we have at least 3 insights
+    if (insights.length < 3) {
+      insights.push(
+        "The content marketing field continues to evolve, with specialized skills becoming increasingly valuable.",
+      )
+      insights.push(
+        "Networking and building a strong portfolio can help you command higher salaries in content marketing.",
+      )
+    }
+
+    return insights
+  } catch (error) {
+    console.error("Error generating insights:", error)
+    return [
+      "Focus on developing specialized skills to increase your market value.",
+      "Consider roles that align with your strengths and career goals.",
+      "Stay updated with industry trends to remain competitive in the job market.",
+    ]
+  }
 }

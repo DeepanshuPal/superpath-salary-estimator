@@ -28,7 +28,7 @@ export default function SharePage({ params, searchParams }: { params: { id: stri
     ) {
       const userData: UserData = {
         experienceLevel: searchParams.exp,
-        experienceYears: Number.parseInt(searchParams.years || "0"),
+        experienceYears: Number.parseInt(searchParams.years || "0", 10),
         jobTitle: searchParams.title,
         industry: searchParams.industry,
         location: searchParams.location,

@@ -58,7 +58,7 @@ export function ShareDialog({ isOpen, onClose, salaryEstimate, userData }: Share
 
   const handleSocialShare = (platform: string) => {
     let shareLink = ""
-    const text = `Check out my content marketing salary estimate of $${salaryEstimate.toLocaleString()} per year!`
+    const text = `Check out my content marketing salary estimate of ${formatCurrency(salaryEstimate)} per year!`
 
     switch (platform) {
       case "facebook":
@@ -78,6 +78,15 @@ export function ShareDialog({ isOpen, onClose, salaryEstimate, userData }: Share
     if (shareLink) {
       window.open(shareLink, "_blank", "width=600,height=400")
     }
+  }
+
+  // Helper function to format currency
+  function formatCurrency(value: number): string {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(value)
   }
 
   return (

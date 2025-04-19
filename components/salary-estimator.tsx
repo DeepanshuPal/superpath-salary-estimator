@@ -31,9 +31,14 @@ export function SalaryEstimator() {
     setIsCalculating(true)
     // Add a small delay to show the calculation animation
     const timer = setTimeout(() => {
-      const estimationResults = calculateSalaryEstimate(userData)
-      setResults(estimationResults)
-      setIsCalculating(false)
+      try {
+        const estimationResults = calculateSalaryEstimate(userData)
+        setResults(estimationResults)
+      } catch (error) {
+        console.error("Error calculating salary estimate:", error)
+      } finally {
+        setIsCalculating(false)
+      }
     }, 500)
 
     return () => clearTimeout(timer)

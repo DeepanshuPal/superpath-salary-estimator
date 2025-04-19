@@ -3,11 +3,6 @@ import jsPDF from "jspdf"
 import { formatCurrency } from "@/lib/utils"
 import type { UserData, SalaryEstimateResult } from "@/lib/types"
 
-interface PdfReportGeneratorProps {
-  userData: UserData
-  results: SalaryEstimateResult
-}
-
 export function generateSalaryPdf(userData: UserData, results: SalaryEstimateResult): Promise<boolean> {
   return new Promise((resolve) => {
     try {
