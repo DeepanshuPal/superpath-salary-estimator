@@ -4,7 +4,7 @@ import { useState, useRef } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Copy, X, Facebook, Twitter, Linkedin, MessageCircle } from "lucide-react"
+import { Copy, X, Facebook, Linkedin, MessageCircle } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 
 interface ShareDialogProps {
@@ -13,13 +13,15 @@ interface ShareDialogProps {
   salaryEstimate: number
 }
 
+// Update the ShareDialog component to fix these issues
 export function ShareDialog({ isOpen, onClose, salaryEstimate }: ShareDialogProps) {
   const { toast } = useToast()
   const [copied, setCopied] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Generate a unique URL for sharing (in a real app, this would be a proper URL)
-  const shareUrl = `https://superpath.co/salary-estimator/${Math.random().toString(36).substring(2, 15)}`
+  // Generate a unique URL for sharing with salarycompass.xyz domain
+  const uniqueId = Math.random().toString(36).substring(2, 15)
+  const shareUrl = `https://salarycompass.xyz/share/${uniqueId}`
 
   const handleCopy = () => {
     if (inputRef.current) {
@@ -36,7 +38,7 @@ export function ShareDialog({ isOpen, onClose, salaryEstimate }: ShareDialogProp
 
   const handleSocialShare = (platform: string) => {
     let shareLink = ""
-    const text = `Check out my content marketing salary estimate of $${salaryEstimate.toLocaleString()} per year!`
+    const text = `Check out my content marketing salary estimate of ${salaryEstimate.toLocaleString()} per year!`
 
     switch (platform) {
       case "facebook":
@@ -92,10 +94,24 @@ export function ShareDialog({ isOpen, onClose, salaryEstimate }: ShareDialogProp
           <Button
             variant="outline"
             size="icon"
-            className="h-14 w-14 rounded-full bg-[#1DA1F2] hover:bg-[#0c85d0] border-none"
+            className="h-14 w-14 rounded-full bg-[#000000] hover:bg-[#333333] border-none"
             onClick={() => handleSocialShare("twitter")}
           >
-            <Twitter className="h-6 w-6 text-white" />
+            {/* X logo instead of Twitter bird */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-5 w-5 text-white"
+            >
+              <path d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </Button>
           <Button
             variant="outline"
